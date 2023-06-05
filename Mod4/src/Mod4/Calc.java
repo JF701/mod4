@@ -1,37 +1,56 @@
 package Mod4;
 
-import java.text.NumberFormat;
+
 import java.util.Scanner;
 
 public class Calc {
     public void run() {
-        Scanner scanner = new Scanner(System.in);
+        try (Scanner userType = new Scanner(System.in)) {
+            System.out.println("Please enter beginning principal amount.");
+            double amount = userType.nextDouble();
 
-        System.out.println("Please enter beginning principal amount");
-        double principal = scanner.nextDouble();
+            System.out.println("Please enter annual interest rate, e.g. 0.06");
+            float interestRate = userType.nextFloat();
 
-        System.out.println("Please enter annual interest rate, e.g. 0.06");
-        float annualInterestRate = scanner.nextFloat();
+            System.out.println("Please enter number of payment periods (e.g. total # of months)");
+            int months = userType.nextInt();
 
-        System.out.println("Please enter number of payment periods (e.g. total # of months)");
-        int paymentPeriods = scanner.nextInt();
+            float monthlyIR = interestRate / 12;
 
-        float interestRate = annualInterestRate / 12;
+            displayAmortizationTable(amount, monthlyIR, months);
+        }
 
-        double monthlyPayments = principal * (
-                (interestRate * (Math.pow(1 + interestRate, paymentPeriods))) /
-                        ((Math.pow(1 + interestRate, paymentPeriods)) - 1)
-        );
-
-
-        System.out.println("Monthly payment: " + NumberFormat.getCurrencyInstance().format(monthlyPayments));
-
-        System.out.printf("%15s %15s %15s %15s %15s%n",
-                "Current Month", "Starting Principal", "Interest Payment",
-                "Principal Payment", "Ending Principal");
-
-        // The code above is missing a closing bracket. Add the following line to close the run() method:
-        scanner.close();
     }
 
-}  
+    public static double calcMonthlyPayments(double amount, double rate, int months) {
+        return (rate * amount) / (1 - Math.pow(1 + rate, -months));
+    }
+
+    public static void displayAmortizationTable(double amount, double rate, int months) {
+        double balance = amount;
+        double payment = calcMonthlyPayments(amount, rate, months);
+        double irPaid, amountPaid, newBalance;
+
+        System.out.printf("%n");
+        System.out.printf("%n");
+
+        System.out.printf(" %-8s  %.2f %n", "Monthly Payment", payment);
+
+        System.out.printf("%n");
+
+        System.out.printf("%20s %20s %20s %20s %20s%n", "Current Month",
+                "Starting Principal", "Interest Payment", "Principal Payment", "Ending Principal");
+
+        for (int month = 1; month <= months; month++) {
+            irPaid = balance * rate;
+            amountPaid = payment - irPaid;
+
+            newBalance = balance - amountPaid;
+
+            System.out.printf("%20d %20.2f %20.2f %20.2f %20.2f%n", month,
+                    balance, irPaid, amountPaid, newBalance);
+
+            balance = newBalance;
+        }
+    }
+}
